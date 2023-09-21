@@ -1,3 +1,5 @@
+import React from "react";
+
 import Logo from "@/components/Logo";
 import Link from "next/link";
 import { GithubIcon, LinkedinIcon, SunIcon, TwitterIcon } from "../Icons";
