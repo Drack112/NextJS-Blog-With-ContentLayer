@@ -3,12 +3,13 @@ import { makeSource, defineDocumentType } from "@contentlayer/source-files";
 const Blog = defineDocumentType(() => ({
   name: "Blog",
   filePathPattern: "**/**/*.mdx",
+  contentType: "mdx",
   fields: {
     title: {
       type: "string",
       required: true,
     },
-    publishAt: {
+    publishedAt: {
       type: "date",
       required: true,
     },
@@ -20,10 +21,10 @@ const Blog = defineDocumentType(() => ({
       type: "string",
       required: true,
     },
-    image: { type: "string", required: true },
+    image: { type: "image" },
     isPublished: {
       type: "boolean",
-      default: false,
+      default: true,
     },
     author: {
       type: "string",
