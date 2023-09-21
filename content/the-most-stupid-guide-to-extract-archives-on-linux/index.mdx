@@ -1,0 +1,64 @@
+---
+title: "The stupidest guide for you to extract files in the terminal (LINUX/GNU/BSD)"
+description: "Seriously, I'm giving you the ready-made deal, are there any difficulties?"
+image: "../../public/blogs/fedora-terminal.png"
+publishedAt: "2023-01-04"
+updatedAt: "2023-01-04"
+author: "drack"
+isPublished: true
+tags:
+  - linux
+  - commands
+  - utils
+---
+
+## Just like any other system in Linux, it is possible to extract rar, zip and other files through a graphical interface. But if you are someone who prefers the old Terminal, here is the list of commands on how to extract these files via terminal.
+
+### Files that are listed
+
+- Rar
+- Zip
+- Tar
+- Tar.gz
+- bz2
+- Tar.bz2
+
+## Extracting these files
+
+Now follow the commands to be carried out in the terminal and I was able to extract it.
+
+#### Zip
+
+```bash
+$ unzip filename.zip
+```
+
+#### Rar
+
+```bash
+$ unrar x filename.rar
+```
+
+#### Tar
+
+```bash
+$ tar -xvf filename.tar
+```
+
+#### Tar.gz
+
+```bash
+$ $tar -vzxf filename.tar.gz
+```
+
+#### Bz2
+
+```bash
+$ bunzip filename.bz2
+```
+
+#### Tar.bz2
+
+```bash
+$ tar -jxvf filename.tar.bz2
+```
