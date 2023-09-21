@@ -1,6 +1,7 @@
 import { allBlogs } from "contentlayer/generated";
 import Tag from "@/components/Elements/Tag";
 import Image from "next/image";
+import BlogDetails from "@/components/Blog/BlogDetails";
 
 export default function BlogPage({ params }) {
   const blog = allBlogs.find((blog) => blog._raw.flattenedPath === params.slug);
@@ -31,6 +32,7 @@ export default function BlogPage({ params }) {
           sizes="100vw"
         />
       </div>
+      <BlogDetails blog={blog} slug={params.slug} />
     </article>
   );
 }
