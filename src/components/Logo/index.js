@@ -1,5 +1,7 @@
-const { default: Image } = require("next/image");
-const { default: Link } = require("next/link");
+import React from "react";
+
+import Image from "next/image";
+import Link from "next/link";
 
 import profileImg from "@/public/profile-img.jpg";
 
