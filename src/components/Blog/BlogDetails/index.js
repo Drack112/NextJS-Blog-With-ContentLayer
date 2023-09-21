@@ -1,6 +1,7 @@
 import { format, parseISO } from "date-fns";
 import Link from "next/link";
 import React from "react";
+import { slug } from "github-slugger";
 
 const BlogDetails = ({ blog, slug: blogSlug }) => {
   return (
@@ -10,7 +11,7 @@ const BlogDetails = ({ blog, slug: blogSlug }) => {
       </time>
       <span className="m-3">10 views</span>
       <div className="m-3">{blog.readingTime.text}</div>
-      <Link href={`/categories/${blog.tags[0]}`} className="m-3">
+      <Link href={`/categories/${slug(blog.tags[0])}`} className="m-3">
         #{blog.tags[0]}
       </Link>
     </div>
