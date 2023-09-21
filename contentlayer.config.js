@@ -1,5 +1,7 @@
 import { makeSource, defineDocumentType } from "@contentlayer/source-files";
 import readingTime from "reading-time";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 
 const Blog = defineDocumentType(() => ({
@@ -53,5 +55,11 @@ export default makeSource({
   /* options */
   contentDirPath: "content",
   documentTypes: [Blog],
-  mdx: { remarkPlugins: [remarkGfm] },
+  mdx: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, { behavior: "append" }],
+    ],
+  },
 });
