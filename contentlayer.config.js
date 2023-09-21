@@ -51,6 +51,11 @@ const Blog = defineDocumentType(() => ({
   },
 }));
 
+const codeOptions = {
+  theme: "github-dark",
+  grid: false,
+};
+
 export default makeSource({
   /* options */
   contentDirPath: "content",
@@ -60,6 +65,7 @@ export default makeSource({
     rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "append" }],
+      [rehypePrettyCode, codeOptions],
     ],
   },
 });
