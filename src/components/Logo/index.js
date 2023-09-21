@@ -11,11 +11,11 @@ const Logo = () => {
       <div className="w-16 rounded-full overflow-hidden border border-solid border-dark mr-4">
         <Image
           src={profileImg}
-          alt="DrackBucks"
+          alt="The nerd called Drack"
           className="w-full h-auto rounded-full"
         />
       </div>
-      <span className="font-bold text-xl">DrackBucks</span>
+      <span className="font-bold text-xl">The guy called Drack</span>
     </Link>
   );
 };
