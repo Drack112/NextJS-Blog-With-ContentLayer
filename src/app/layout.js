@@ -1,3 +1,5 @@
+import React from "react";
+
 import "./globals.css";
 import { Inter, Manrope } from "next/font/google";
 import { cx } from "@/utils/cx";
