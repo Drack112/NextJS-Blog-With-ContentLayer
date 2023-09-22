@@ -2,7 +2,8 @@ import React from "react";
 
 import Logo from "@/components/Logo";
 import Link from "next/link";
-import { GithubIcon, LinkedinIcon, SunIcon, TwitterIcon } from "../Icons";
+import { GithubIcon, LinkedinIcon, SunIcon } from "../Icons";
+import siteMetadata from "@/utils/siteMetaData";
 
 const Header = () => {
   return (
@@ -24,7 +25,7 @@ const Header = () => {
       </nav>
       <div className=" hidden sm:flex items-center">
         <a
-          href="/"
+          href={siteMetadata.linkedin}
           className="inline-block w-6 h-6 mr-4"
           aria-label="Reach out to me via LinkedIn"
           target="_blank"
@@ -32,15 +33,7 @@ const Header = () => {
           <LinkedinIcon className="hover:scale-125 transition-all ease duration-200" />
         </a>
         <a
-          href="/"
-          className="inline-block w-6 h-6 mr-4"
-          aria-label="Reach out to me via Twitter"
-          target="_blank"
-        >
-          <TwitterIcon className="hover:scale-125 transition-all ease duration-200" />
-        </a>
-        <a
-          href="/"
+          href={siteMetadata.github}
           className="inline-block w-6 h-6 mr-4"
           aria-label="Check my profile on Github"
           target="_blank"

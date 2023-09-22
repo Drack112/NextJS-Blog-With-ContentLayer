@@ -2,8 +2,9 @@
 
 import React from "react";
 import { useForm } from "react-hook-form";
-import { GithubIcon, LinkedinIcon, TwitterIcon } from "@/components/Icons";
+import { GithubIcon, LinkedinIcon } from "@/components/Icons";
 import Link from "next/link";
+import siteMetadata from "@/utils/siteMetaData";
 
 const Footer = () => {
   const {
@@ -13,7 +14,7 @@ const Footer = () => {
   } = useForm();
 
   const onSubmit = (data) => console.log(data);
-  console.log(console.errors);
+  console.log(errors);
 
   return (
     <footer className="mt-16 rounded-2xl bg-dark dark:bg-accentDark/90 m-2 sm:m-10 flex flex-col items-center text-light dark:text-dark">
@@ -42,7 +43,7 @@ const Footer = () => {
       </form>
       <div className="flex items-center mt-8">
         <a
-          href=""
+          href={siteMetadata.linkedin}
           className="inline-block w-6 h-6 mr-4"
           aria-label="Reach out to me via LinkedIn"
           target="_blank"
@@ -50,15 +51,7 @@ const Footer = () => {
           <LinkedinIcon className="hover:scale-125 transition-all ease duration-200" />
         </a>
         <a
-          href=""
-          className="inline-block w-6 h-6 mr-4"
-          aria-label="Reach out to me via Twitter"
-          target="_blank"
-        >
-          <TwitterIcon className="hover:scale-125 transition-all ease duration-200" />
-        </a>
-        <a
-          href=""
+          href={siteMetadata.github}
           className="inline-block w-6 h-6 mr-4 fill-light"
           aria-label="Check my profile on Github"
           target="_blank"
