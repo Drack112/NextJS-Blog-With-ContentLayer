@@ -1,0 +1,98 @@
+---
+title: "Simple Guide To Use The Runit Init System"
+description: "Are you having difficulty using a boot system that is faster than that SSD you paid 30 dollars for? Learn now then."
+image: "../../public/blogs/void.jpg"
+publishedAt: "2023-09-21"
+updatedAt: "2023-09-21"
+author: "Drack"
+isPublished: true
+tags:
+  - Linux
+---
+
+# What's Runit System?
+
+> **runit** is a boot system for Unix-like systems such as Linux. Its main function is to start and manage the processes that are part of the operating system.:
+
+## Why some system's like Void linux use the runit?
+
+- Simplicity: Runit is known for its simplicity and minimalist desig- He focuses on doing the basics and doing them well.
+
+- Managed Processes: Runit is used to start, stop and restart processes on the syste- This includes services, daemons, and other background programs.
+
+- Dependencies: It can handle dependencies between services, which means you can configure it to start services in the correct order, taking into account the dependencies between them.
+
+- Easy Configuration: Runit configuration is generally done through simple directories and scripts, making it accessible even to less experienced system administrators.
+
+- Alternative to Systemd: Some systems prefer runit over systemd, especially those that value simplicity and transparency in initialization and service management.
+
+## How i can use that thing?
+
+- Before uploading a service it is necessary to enable it so that it can be activated at boot time and can be managed by the sv command, to enable a service with runit run:
+
+```bash
+$ ln -s /etc/runit/sv/<Name Of Your Service> /run/runit/service
+```
+
+## Controlling the service
+
+_Note: When the service is enabled it starts automatically_
+
+```bash
+sv start <Name Of Your Service>
+```
+
+- To stop him:
+
+```bash
+sv stop <Name Of Your Service>
+```
+
+- To check its status
+
+```bash
+sv status <Name Of Your Service>
+```
+
+- To restart it
+
+```bash
+sv restart <Name Of Your Service>
+```
+
+## Disabling service at boot
+
+- To disable access at boot simply create a file called \*down\* in the program folder in question, example:
+
+```bash
+ touch /etc/runit/sv/<Name Of Your Service>/down
+```
+
+## Monitoring the system
+
+- View the status of all services
+
+```bash
+sv status /var/service/*
+```
+
+## Seeing boot tree
+
+> First install the tree command from your package manager and then
+
+```bash
+tree /etc/runit/sv/servicedir
+```
+
+You will see output similar to:
+
+```bash
+ servicedir
+ ├── run (755)
+ ├── check (755)
+ ├── conf (644)
+ ├── finish (755)
+ └── log (directory)
+     ├── config (644)
+     └── run (755)
+```
