@@ -2,7 +2,7 @@
 const siteMetadata = {
   title: "Code Snippets Of Drack",
   author: "Drack",
-  headerTitle: "Don't show this blog to my momm.",
+  headerTitle: "Don't show this blog to my mom.",
   description:
     "A blog created with Next.js, Tailwind.css, contentlayer and a few more things taken from the deep web",
   language: "en-us",
