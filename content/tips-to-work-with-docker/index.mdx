@@ -1,0 +1,280 @@
+---
+title: "Make your productivity with Docker 1000% better"
+description: "Tricks to make your containers more organized and work 1000% better"
+image: "../../public/blogs/desktop-wallpaper-docker-kubernetes.jpg"
+publishedAt: "2023-09-22"
+updatedAt: "2023-09-22"
+author: "Drack"
+isPublished: true
+tags:
+  - Docker
+---
+
+# Habits developers need to have when working with Docker
+
+If you are a developer, like me, who likes to use Docker to put everything that's good into your application, whether it's a front-end with react or a monolith with 300 dependencies, then this post is for you.
+
+I have prepared some topics with good practices that you should follow, and I will include some popular languages ​​followed by tips that can help you with your productivity and also with your organization with containers.
+
+So that this doesn't get repetitive, I will at least use two examples for the topic (if necessary, of course, we don't want to repeat the obvious all the time).
+
+> Vocês estão prontas crianças?
+> Pois a nossa aventura nesse oceano começa agora 🐬
+
+## 🗂️ Own Dockerfile's
+
+> "Huh, but I already do this in my application, I didn't understand this topic"
+
+My dear friend, when we are working with Docker, especially docker-compose, where we want to orchestrate our images and divide it into an isolated container, we end up following a pattern where we do everything within our docker-compose.yml
+
+**We ended up pulling the image directly from the .yml file without performing any specific command or configuration that we want.**
+
+> "Ah, but for that we could use the docker-compose command"
+
+But what if I need to run more than one command, if I want a custom workdir? What if I need to change user settings? Am I going to do this all within the command? Of course not ❌
+
+```yml title="docker-compose.yml"
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_USER: drack_agent
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+```
+
+Here for example, we just import the postgres image without passing any additional configuration, what if I need **2 databases** with complex configurations? How will I convey all this in a compose?
+
+Don't worry my dear, I'm here to show you the most delicious way to solve this problem, you just need to create a Dockerfile for it and that's it, you can use your Postgres instance to your heart's content. And look how we have a prettier compose for us to use.
+
+I will create a folder called **.docker** and inside that folder create another folder called postgres, and inside it will have my postgres Dockerfile.
+
+```Dockerfile title=".docker/postgres/Dockerfile"
+FROM postgres:14
+```
+
+```yml title="docker-compose.yml"
+services:
+  db:
+    build: .docker/postgres
+    environment:
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_USER: drack_agent
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+```
+
+> "Ah Drack but is that all? What a waste of time eh"
+
+Calm down, calm down, if you think this is a small thing, then look at what we can do by following this pattern.
+
+If you want to remove ROOT permissions for your volumes and not lose any of your super secret data, then look how you can configure this in a simple way using Dockerfiles
+
+```Dockerfile title="Dockerfile"
+FROM postgres:14 as development
+RUN usermod -u 1000 postgres
+
+CMD ["-p", "5433"]
+
+FROM postgres:14 as test
+RUN usermod -u 1000 postgres
+CMD ["-p", "5432"]
+```
+
+## 👷 Multi-stage build
+
+Do you create isolated containers for correct development? But do you create them for development and production? **No?! What do you mean, man?**
+
+Multi Stage build was released in version **17.05** and allows a build to be reused in different stages of image generation, making Dockerfiles easier to read and maintain.
+
+So let's suppose I were working on a golang application, we know that in the end this golang application will be a single binary file, and that the only deps we need are **go.mod** and **go.sum** precisely to install them and make our app run. But what if I could **_get_** just these 3 files from another container, more precisely from my development container? It would be wonderful, wouldn't it?
+
+But of course we can do this, come with me!
+
+To explain it simply, I will make a Dockerfile with multi-stage and a docker-compose for dev and production, and I will comment on the content within the Dockerfile.
+
+```Dockerfile title="Dockerfile"
+// The name of our first stage will be called builder,
+precisely because it is the main target that will make
+the entire process of setting up our go application and building it at the end.
+
+FROM golang:1.18.8-alpine as builder
+
+ENV GO111MODULE=on
+
+// apk for us to add dependencies such as bash, curl and the like
+RUN apk update && apk add --no-cache bash
+
+// Workdir of our application
+WORKDIR /go/src/app
+
+// Live Reload for golang
+RUN go install github.com/cosmtrek/air@latest
+
+// Copy the golang project dependency files
+COPY go.mod /go/src/app/
+COPY go.sum /go/src/app/
+
+// Install these dependencies
+RUN go mod download
+RUN go mod tidy
+
+// Copy our entire project
+COPY . /go/src/app/
+
+// Expose project ports
+EXPOSE 8080
+EXPOSE 9090
+EXPOSE 5454
+
+// And finally build our application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+
+// And here, it will be the stage that will not have a name,
+but feel free to call him whatever you want,
+for now, we import alpine which is a linux system
+so small and complete at the same time that it is perfect for running our go application.
+
+FROM alpine:latest
+
+// Run the APK so we can get execution certificates
+RUN apk --no-cache add ca-certificates
+
+// Workdir of our application
+WORKDIR /go/src/app
+
+// GIN variable (micro framework go)
+ENV GIN_MODE release
+
+// And finally, COPY, COPY allows us to
+copy files from other containers and play in the environment
+current one that we are running, here for example, I am
+taking both the GO application that was compiled,
+my app.env and my migrations folder, you see
+how small will our container be without having
+all the files in our project? Here, we only have what we need.
+
+COPY --from=builder /go/src/app/main /go/src/app/
+COPY --from=builder /go/src/app/app.env /go/src/app/
+COPY db/migrations /go/src/app/db/migrations/
+
+EXPOSE 8080
+EXPOSE 9090
+EXPOSE 5454
+
+// And in the end, we will execute it :D
+CMD ["./main"]
+```
+
+Now let's take a look at our development and production docker-compose.
+
+> composer file of development
+
+```yaml title="docker-compose-dev.yaml"
+version: "3"
+
+services:
+  app:
+    build:
+      target: builder
+      context: .
+    command: air .
+    ports:
+      - 8080:8080
+      - 9090:9090
+      - 5454:5454
+    volumes:
+      - .:/go/src/app
+```
+
+> composer file of production
+
+```yaml title="docker-compose-prod.yaml"
+version: "3"
+
+services:
+  app:
+    build: .
+    ports:
+      - 8080:8080
+      - 9090:9090
+      - 5454:5454
+    volumes:
+      - .:/go/src/app
+```
+
+## Local volumes 🥤
+
+You know that instance of Postgres that I used as an example earlier?
+
+I just talked about the data that you could have saved without making that annoying root access error when working with development, but how can I leave this data saved locally instead of creating a volume? Now, this is very simple, come with me.
+
+```yaml title="docker-compose.yml"
+services:
+
+  db:
+    build: .docker/postgres
+    environment:
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_USER: drack_agent
+   volumes:
+      - .docker/dbdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+```
+
+Here, I'm saying that my postgres container data, which is stored in `/var/lib/postgresql/data`, will also be saved in a linked way in .docker/dbdata, and it's interesting, if you use the Dockerfile I passed before, you can explore the entire postgres data as if you were a **sudo user** in freedom!
+
+```Dockerfile title="Dockerfile"
+FROM postgres:14
+
+RUN usermod -u 1000 postgres
+```
+
+## ✨ Alpine forever
+
+This here is more like a bonus, but ideally, if the image you are looking for has a variant with alpine linux, you will literally be getting a 2 in 1 with more bonuses than you can imagine, as well as a super compact and small, you can still use a Linux with huge resources to work however you want, in comparison, you will be able to run your commands as fast as you would run and wait almost minutes on a Debian.
+
+## 🔏 Envs
+
+I like to follow a certain standard of values ​​for envs, both in docker-compose and in my applications, let's use NodeJS, if I had an application with Prisma ORM and needed to import all the envs into it, I personally find it more practical to leave all this in a `.env` file and send it to docker-compose.yaml, this way, we reduce unnecessary lines and we can still organize the .envs in one place.
+
+```shell title=".env"
+
+// NestJS
+SERVER_PORT=3000
+
+// Postgres
+DB_USERNAME=drack_agent
+DB_PASSWORD=123
+DB_NAME=graphql
+
+DATABASE_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public"
+```
+
+```yaml title="docker-compose.yaml"
+version: "3"
+
+services:
+  app:
+    container_name: nestjs-app-development
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/home/node/app
+      - ./node_modules:/home/node/app/node_modules
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    env_file:
+      - .env
+```
+
+## 🎉 Finalization
+
+So that's it for today, I know I may have written a lot but you can be sure that in addition to the productivity you will achieve, you will be able to work with more richness and class in Docker as well as performance in your final production versions.
+
+A hug and see you next!
