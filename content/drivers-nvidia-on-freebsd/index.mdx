@@ -1,0 +1,69 @@
+---
+title: "Nvidia Drivers on FreeBSD."
+description: "Quick and easy install of the property drivers nvidia on BSD"
+image: "../../public/blogs/nvidia-bsd.png"
+publishedAt: "2023-10-04"
+updatedAt: "2023-10-04"
+author: "Drack"
+isPublished: true
+tags:
+  - BSD System
+---
+
+# ☂️
+
+If you are following the Xorg configuration manual, ignore what the manual says about running **_Xorg -configure_**.
+
+**Não execute o Xorg -configure**
+
+If you've already followed the manual and created an xorg.conf, be sure to remove /etc/X11/xorg.conf or /usr/local/etc/X11/xorg.conf before proceeding:
+
+```shell
+rm -f /etc/X11/xorg.conf /usr/local/etc/X11/xorg.conf
+```
+
+## Installing nvidia drivers:
+
+1 - Install x11/nvidia-driver
+
+```shell
+pkg install nvidia-driver
+```
+
+For some older cards, you need to use x11/nvidia-driver-340 or x11/nvidia-driver-304.
+
+> Check the NVIDIA download page to see which driver version you need. Note that there is no need (and even counterproductive) to download the driver from this page.
+
+2 - Execute
+
+```shell
+sysrc kld_list+="nvidia-modeset"
+```
+
+To add an entry to /etc/rc.conf to load kernel modules on boot.
+
+**nvidia-modeset** is only available for driver versions >= 358,009, if you use an older version, use `sysrc kld_list+="nvidia"`.
+
+3 - Reboot with `shutdown -r now` or load the required kernel modules now with `kldload nvidia-modeset` or `kldload nvidia`
+
+4 - Create the directory:
+
+```shell
+mkdir -p /usr/local/etc/X11/xorg.conf.d
+```
+
+5 - Use your text editor in /usr/local/etc/X11/xorg.conf.d/driver-nvidia.conf with the script below:
+
+```
+Section "Device"
+        Identifier "NVIDIA Card"
+        VendorName "NVIDIA Corporation"
+        Driver "nvidia"
+EndSection
+```
+
+6 - Reboot
+
+### Enjoy
+
+![](https://giphy.com/gifs/ascii-art-bbs-ansi-dDwicM3uFUqfC)
