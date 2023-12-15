@@ -1,0 +1,301 @@
+---
+title: "Jwt and Paseto Token. WTF they are?"
+description: "A quick longer look of token authentications on your applications"
+image: "../../public/blogs/json-web-tokens-the-good-parts-0d4bc980e0cbc5f542f521ce7f673a14890e8726df21a2d20f5061a49d658bc7.jpg"
+publishedAt: "2023-12-05"
+updatedAt: "2023-12-05"
+author: "Drack"
+isPublished: true
+tags:
+  - Security
+  - Web
+---
+
+# Quick Look
+
+Authentication tokens are crucial elements in modern applications to ensure user security and identification.
+Among the best known is the JSON Web Token (JWT), widely used due to its efficiency and simplicity. JWT is a JSON-based token that contains encrypted or encoded information about the user, such as identification and permissions.
+It is typically used in API authentications, where security and efficiency in data transfer are essential.
+
+## Undertstanding Token-Based Authentication
+
+Understanding Token-Based Authentication
+
+The typical flow for authenticating a user in a secured API involves the following steps:
+
+    - The user provides their username and password for authentication.
+    - Upon successful verification, the API returns an access token (either JWT or PASETO).
+    - The access token is included in the Authorization header when making requests to protected endpoints.
+    - The API server validates the token and responds with the appropriate secured data if the access is valid.
+
+![Token Based Authentication](https://www.freecodecamp.org/news/content/images/2023/01/token-based-authentication.jpg)
+
+Recently, a new token format has been gaining attention: PASETO (Platform-Agnostic SECurity TOkens). PASETO seeks to address some of the security concerns associated with JWT.
+While JWT allows a variety of algorithms for signing and encryption, which can lead to insecure configurations, PASETO restricts the options to avoid such vulnerabilities.
+It offers a tighter specification with less flexibility but a higher standard of security.
+
+## Why PASETO?
+
+An important aspect in comparing JWT and PASETO is the way each deals with known vulnerabilities. JWT, being older and more widely used, has a number of documented vulnerabilities that need to be carefully managed by developers. PASETO, on the other hand, was designed with the aim of minimizing these vulnerabilities by offering a more secure framework by default.
+
+### JWT Workout
+
+1. Header: The first part of a JWT is the header. This section typically consists of two parts: the type of token, which is JWT, and the signing algorithm being used, like HMAC SHA256 or RSA. The purpose of the header is to define how the JWT is encoded and secured. The header is encoded in Base64, turning it into a string that can be sent over networks.
+
+Example Header:
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+2. Payload: The payload of a JWT contains the claims. Claims are statements about an entity (typically the user) and additional data. There are three types of claims: registered, public, and private claims.
+
+   - Registered claims: These are predefined claim names that aren't mandatory but are recommended to provide a set of useful, interoperable claims. Examples include iss (issuer), exp (expiration time), sub (subject), and aud (audience).
+   - Public claims: These can be defined at will by those using JWTs. To avoid collisions, they should be defined in the IANA JSON Web Token Registry or be defined as a URI that contains a collision-resistant namespace.
+   - Private claims: These are custom claims created to share information between parties that agree on using them and are neither registered nor public claims.
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true
+}
+```
+
+3. Signature: The last part of the JWT is the signature, which is used to verify that the sender of the JWT is who it says it is and to ensure that the message wasn't changed along the way. To create the signature, the encoded header, the encoded payload, a secret, and the algorithm specified in the header are used.
+
+For example, if you're using the HMAC SHA256 algorithm, the signature will be created like this:
+
+```scss
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  secret)
+```
+
+The three parts of the JWT - header, payload, and signature - are combined to form a token that looks like this: xxxxx.yyyyy.zzzzz. Each section is separated by a dot. JWTs can be easily transmitted through URLs, POST request parameters, or inside HTTP headers, and are more compact and self-contained compared to other types of tokens, which makes them suitable for scenarios where performance and space are concerns.
+
+> Bad part of JWT comes now >:(
+
+### Insecures and Leaks
+
+1. Insecure Algorithms and Key Management:
+
+   - If JWTs are signed with weak algorithms like none or HS256 with weak keys, they become vulnerable to tampering. Attackers might forge tokens or decode the information.
+   - Poor management of private keys used for signing JWTs can lead to key exposure. If an attacker gains access to these keys, they can issue valid tokens.
+
+2. Lack of Token Validation:
+
+   - Not validating the JWT properly on the server side can lead to security breaches. This includes failing to verify the signature, not checking the token expiration (exp), or not validating other claims.
+   - Accepting tokens without verifying the issuer (iss) or the intended audience (aud) can lead to tokens being misused in unintended contexts.
+
+3. Exposure of Sensitive Information:
+
+   - JWTs are encoded, not encrypted. This means the information in the payload can be easily decoded by anyone who intercepts the token. Storing sensitive data in the token payload without proper encryption can lead to data exposure.
+
+4. Token Interception and Replay Attacks:
+
+   - If JWTs are not transmitted securely (e.g., over non-HTTPS connections), they can be intercepted by attackers.
+   - Without proper measures like one-time use tokens or short expiration times, intercepted tokens can be reused by attackers (replay attacks).
+
+5. Cross-Site Scripting (XSS) and Cross-Site Request Forgery (CSRF):
+
+   - If JWTs are stored in insecure places like local storage in browsers, they can be extracted through XSS attacks.
+   - While JWTs are somewhat resistant to CSRF attacks, improper implementation can still leave applications vulnerable, especially if tokens are automatically included in every request by the browser.
+
+6. Token Storage and Session Management:
+
+   - How and where the tokens are stored on the client side can affect security. Improper storage can make them accessible to malicious scripts.
+   - Long-lived tokens can pose a risk if they're stolen, as they give attackers more time to exploit them.
+
+### PASETO the Solution!
+
+PASETO (Platform-Agnostic Security Tokens) is a security token standard that emerged as an alternative to JWT (JSON Web Token). PASETO was designed to simplify and improve the security of tokens used in system-to-system communications. Let's explore its advantages, how it works and its main features.
+
+Advantages of PASETO
+
+1. Enhanced Security: PASETO is designed to fix several vulnerabilities and complexities found in JWT. It limits the number of allowed encryption and signing algorithms, reducing the chance of insecure implementations.
+
+2. Simplicity and Rigidity: Unlike JWT, which offers many options and configurations, PASETO has a stricter ruleset and fewer options. This simplifies the implementation process and reduces configuration errors.
+
+3. No Algorithm Dependence: PASETO does not depend on specific cryptography algorithms, which makes it more adaptable to changes and developments in the cryptography area.
+
+4. Greater Version Clarity: Each PASETO token starts with a clear version and purpose (such as 'v2.local' for version 2 encrypted tokens), making the interpretation and validation of tokens more transparent.
+
+Each PASETO token is made up of several distinct parts: the version, the purpose, the payload, the signature or encryption, and optionally, a footer. Let's detail each of these parts:
+
+#### Version
+
+PASETO version indicates the specific version of the PASETO standard being used. This is important because each version may support different encryption or signing methods. For example, you might see tokens starting with v1, v2, v3, etc. Each version has its own specifications and security standards. 2. Purpose
+
+The purpose of the token specifies whether the token is a 'local' or 'public':
+
+**_Location_**: Indicates that the token is encrypted. The information in the payload is protected and cannot be read without the corresponding decryption key. This is similar to encrypted JWT (JWE).
+**_Public_**: Means that the token is signed. The payload is not encrypted and can therefore be read by anyone, but a signature is attached to ensure the integrity and authenticity of the data. This is similar to signed JWT (JWS).
+
+#### Payload
+
+The payload contains the data (claims) being transmitted. These may include user information, permissions, expiration times, and other relevant data. In the case of a 'local' token, this payload is encrypted. For a 'public' token, the payload is visible but protected by the signature. 4. Signing or Encryption
+
+Depending on the purpose of the token, this section contains either the encryption (for 'local' tokens) or the signature (for 'public' tokens):
+
+**_Encryption_**: Used for 'local' tokens, this part of the token includes the encrypted payload data, along with any information required for decryption (such as a nonce).
+Signature: For 'public' tokens, this section includes a digital signature that can be used to verify the token's authenticity and data integrity.
+
+#### Footer (Optional)
+
+> The footer is an optional part of the PASETO token. It can be used to store additional information that does not need to be protected but is useful for the token validation process. This may include information such as the identity of the key used to sign or encrypt the token.
+> PASETO Token Structure
+
+A PASETO token is structured as a string, usually divided into sections separated by dots. For example, a PASETO token might look like this:
+
+```scss
+v2.public.payload.signature.footer
+```
+
+In this example, v2 indicates the version, public the purpose, payload is the encoded payload, signature is the digital signature and footer is the optional footer.
+
+## Local Tokens (Symmetric Cryptography)
+
+PASETO Local Tokens use symmetric encryption to guarantee the confidentiality of the data contained in the token.
+
+### Characteristics:
+
+Use of a single key: The same key is used to encrypt and decrypt data. This key must be shared between the issuer and receiver of the token in a secure way.
+Data confidentiality: The payload is fully encrypted, ensuring that only those who have the key can access the information.
+Security: When implemented correctly with strong algorithms and secure key management, Local Tokens offer a high level of security.
+
+![Example of Local Storage tokens](https://engineering.monstar-lab.com/assets/img/articles/2023-05-16-An-overview-of-PASETO-Token-Based-Authentication/symmetric.png)
+
+### Applications:
+
+Ideal for situations where data confidentiality is essential and the sender and receiver already share a secret key.
+Used to transmit sensitive data that should not be exposed.
+
+![More ez example](https://engineering.monstar-lab.com/assets/img/articles/2023-05-16-An-overview-of-PASETO-Token-Based-Authentication/paseto_symmetric_demo.png)
+
+## Public Tokens (Asymmetric Cryptography)
+
+PASETO Public Tokens use asymmetric cryptography, where two distinct keys (one public and one private) are used.
+
+### Characteristics:
+
+Two keys: A private key is used to sign the token, and a corresponding public key is used to verify the signature. The private key must be kept secret, while the public key can be distributed openly.
+Authenticity and Integrity: Signing guarantees that the token was issued by an authentic source and that the data has not been altered.
+Data transparency: Unlike Local Tokens, the data in the payload of a Public Token is visible, but the signature guarantees its integrity.
+
+![Example of Public Storage tokens](https://engineering.monstar-lab.com/assets/img/articles/2023-05-16-An-overview-of-PASETO-Token-Based-Authentication/asymmetric.png)
+
+### Applications:
+
+Suitable for situations where it is necessary to validate the origin and integrity of data without the need to maintain the confidentiality of the payload.
+Commonly used in situations where many different parties need to verify the authenticity of a token without the need to have a shared secret key.
+
+![More ez example](https://engineering.monstar-lab.com/assets/img/articles/2023-05-16-An-overview-of-PASETO-Token-Based-Authentication/paseto_asymmetric_demo.png)
+
+## Comparison and Choice
+
+The choice between Local Tokens and Public Tokens depends on specific security needs and context of use:
+
+Local Tokens are most appropriate when data confidentiality is a priority and when parties involved can share and manage a secret key securely.
+Public Tokens are ideal for situations where data integrity and authenticity are crucial, but payload confidentiality is not a concern. They are more flexible in terms of key management since the public key can be shared openly.
+
+In both cases, it is crucial to implement robust security practices, such as the use of strong algorithms, secure key management, and proper validation of tokens.
+
+## Using the PASETO tokens on Golang
+
+Creating PASETO tokens in Golang involves using a suitable library that supports PASETO. Since PASETO is less common than JWT, finding a well-maintained library is crucial. For this example, I'll use a hypothetical Go library that supports PASETO (let's call it gopaseto). This is a conceptual illustration as the actual implementation might vary depending on the library you choose.
+Example: Using PASETO with Local and Public Tokens in Go
+
+First, ensure you have a library that supports PASETO. You can typically install it using go get. For instance:
+
+```shell
+go get github.com/yourchosenlibrary/gopaseto
+```
+
+Now, let's write some example code.
+
+#### Local Tokens (Symmetric Encryption)
+
+Local tokens use a shared secret key for encryption and decryption.
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+
+    "github.com/yourchosenlibrary/gopaseto"
+)
+
+func main() {
+    // Generate a new symmetric key for Local tokens
+    key := gopaseto.NewSymmetricKey()
+
+    // Create a new PASETO token
+    token := gopaseto.NewToken()
+    token.Set("data", "This is a secret message")
+    token.SetExpiration(time.Now().Add(24 * time.Hour))
+
+    // Encrypt the token using the symmetric key
+    encryptedToken, err := gopaseto.EncryptLocal(token, key)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println("Encrypted Token:", encryptedToken)
+
+    // Decrypt the token
+    decryptedToken, err := gopaseto.DecryptLocal(encryptedToken, key)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println("Decrypted Data:", decryptedToken.Get("data"))
+}
+```
+
+#### Public Tokens (Asymmetric Encryption)
+
+Public tokens use a pair of public and private keys for signing and verification.
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+
+    "github.com/yourchosenlibrary/gopaseto"
+)
+
+func main() {
+    // Generate a new pair of asymmetric keys for Public tokens
+    publicKey, privateKey, err := gopaseto.GenerateAsymmetricKeys()
+    if err != nil {
+        panic(err)
+    }
+
+    // Create a new PASETO token
+    token := gopaseto.NewToken()
+    token.Set("user", "JohnDoe")
+    token.SetExpiration(time.Now().Add(24 * time.Hour))
+
+    // Sign the token using the private key
+    signedToken, err := gopaseto.SignPublic(token, privateKey)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println("Signed Token:", signedToken)
+
+    // Verify the token using the public key
+    verifiedToken, err := gopaseto.VerifyPublic(signedToken, publicKey)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println("Verified User:", verifiedToken.Get("user"))
+}
+
+```
